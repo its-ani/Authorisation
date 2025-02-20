@@ -1,6 +1,8 @@
 package com.example.userservicefeb25.controllers;
 
 import com.example.userservicefeb25.dtos.*;
+import com.example.userservicefeb25.models.Token;
+import com.example.userservicefeb25.models.User;
 import com.example.userservicefeb25.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +19,23 @@ public class UserController {
     @PostMapping("/login")
     public LoginResponseDto login(@RequestBody LoginRequestDto requestDto) {
 
-        return null;
+        Token token = userService.login(requestDto.getEmail(), requestDto.getPassword());
+        LoginResponseDto responseDto = new LoginResponseDto();
+        responseDto.setToken(token);
+
+        return responseDto;
     }
 
     @PostMapping("/signup")
     public UserDto signUp(@RequestBody SignUpRequestDto requestDto) {
 
-        return null;
+        User user = userService.signUp(requestDto.getName(), requestDto.getEmail(), requestDto.getPassword());
+        UserDto userDto = new UserDto();
+        userDto.setEmail(user.getEmail());
+        userDto.setName(user.getName());
+        userDto.setRoles(user.getRoles());
+
+        return userDto;
     }
 
     @GetMapping("/logout")
@@ -36,6 +48,12 @@ public class UserController {
     @GetMapping("/validate/{token}")
     public UserDto validateToken(@PathVariable("token") String tokenValue) {
 
-        return null;
+        User user = userService.validateToken(tokenValue);
+        UserDto userDto = new UserDto();
+        userDto.setEmail(user.getEmail());
+        userDto.setName(user.getName());
+        userDto.setRoles(user.getRoles());
+
+        return userDto;
     }
 }
