@@ -4,6 +4,8 @@ import com.example.userservicefeb25.dtos.*;
 import com.example.userservicefeb25.models.Token;
 import com.example.userservicefeb25.models.User;
 import com.example.userservicefeb25.services.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,8 +42,8 @@ public class UserController {
 
     @GetMapping("/logout")
     public ResponseEntity<Void> logOut(@RequestBody LogOutRequestDto requestDto) {
-
-        return null;
+        userService.logout(requestDto.getTokenValue());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     //localhost:8080/users/validate/token
