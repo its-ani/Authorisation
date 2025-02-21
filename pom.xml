@@ -105,6 +105,10 @@
             <version>8.3.0</version>  <!-- Check latest version below -->
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web-services</artifactId>
+        </dependency>
 
 
     </dependencies>
