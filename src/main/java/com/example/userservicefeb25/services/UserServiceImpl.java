@@ -5,6 +5,7 @@ import com.example.userservicefeb25.exceptions.UserNotRegisteredException;
 import com.example.userservicefeb25.models.Role;
 import com.example.userservicefeb25.models.Token;
 import com.example.userservicefeb25.models.User;
+import com.example.userservicefeb25.repository.RoleRepository;
 import com.example.userservicefeb25.repository.TokenRepository;
 import com.example.userservicefeb25.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,21 +15,19 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+    private final RoleRepository roleRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, TokenRepository tokenRepository) {
+    public UserServiceImpl(UserRepository userRepository, TokenRepository tokenRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
+        this.roleRepository = roleRepository;
     }
     @Override
     public Token login(String email, String password) throws UserNotRegisteredException{
@@ -56,12 +55,24 @@ public class UserServiceImpl implements UserService {
     }
 
     public ArrayList<Role> creatingRoles(String role) {
-        Role roless = new Role();
-        roless.setValue(role);
-        ArrayList<Role> roles = new ArrayList<>();
-        roles.add(roless);
+        Optional<Role> existingRole = roleRepository.findByValue(role);
 
-        return roles;
+//        if(existingRole.isEmpty()) {
+//            Role newRole = new Role();
+//            newRole.setValue(role);
+//            Role createdRole = roleRepository.save(newRole);
+//            ArrayList<Role> roles = new ArrayList<>();
+//            roles.add(createdRole);
+//
+//            return roles;
+//        }
+
+        return existingRole.map(r -> new ArrayList<>(List.of(r)))
+                .orElseGet(() -> {
+                    Role newRole = new Role();
+                    newRole.setValue(role);
+                    return new ArrayList<>(List.of(roleRepository.save(newRole)));
+                });
     }
 
     public String generateUUIDToken() {
@@ -82,18 +93,25 @@ public class UserServiceImpl implements UserService {
     public User signUp(String name, String email, String password) throws ExistingUserException{
         //Implement BCryptPassword
         Optional<User> user = userRepository.findByEmail(email);
-        if(user.isEmpty()) {
+        User newUser = new User();
+
+        if(user.isPresent()) {
             throw new ExistingUserException("User with this email id exists. Please login from /login");
         }
 
-        User newUser = new User();
         newUser.setEmail(email);
         newUser.setPassword(password);
         newUser.setName(name);
-        newUser.setRoles(creatingRoles("ADMIN"));
-        createToken(newUser);
 
-        return userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
+
+        savedUser.setRoles(creatingRoles("ADMIN"));
+
+
+        User dbUser = userRepository.save(savedUser);
+        createToken(dbUser);
+
+        return dbUser;
     }
 
     @Override
