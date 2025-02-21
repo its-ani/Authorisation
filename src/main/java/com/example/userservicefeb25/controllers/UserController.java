@@ -4,6 +4,7 @@ import com.example.userservicefeb25.dtos.*;
 import com.example.userservicefeb25.models.Token;
 import com.example.userservicefeb25.models.User;
 import com.example.userservicefeb25.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -14,29 +15,37 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
+    @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @PostMapping("/login")
     public LoginResponseDto login(@RequestBody LoginRequestDto requestDto) {
-
-        Token token = userService.login(requestDto.getEmail(), requestDto.getPassword());
         LoginResponseDto responseDto = new LoginResponseDto();
-        responseDto.setToken(token);
-
+        try {
+            Token token = userService.login(requestDto.getEmail(), requestDto.getPassword());
+            responseDto.setToken(token);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
         return responseDto;
     }
 
     @PostMapping("/signup")
     public UserDto signUp(@RequestBody SignUpRequestDto requestDto) {
-
-        User user = userService.signUp(requestDto.getName(), requestDto.getEmail(), requestDto.getPassword());
         UserDto userDto = new UserDto();
-        userDto.setEmail(user.getEmail());
-        userDto.setName(user.getName());
-        userDto.setRoles(user.getRoles());
 
+        try {
+            User user = userService.signUp(requestDto.getName(), requestDto.getEmail(), requestDto.getPassword());
+            userDto.setEmail(user.getEmail());
+            userDto.setName(user.getName());
+            userDto.setRoles(user.getRoles());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
         return userDto;
     }
 
@@ -49,13 +58,17 @@ public class UserController {
     //localhost:8080/users/validate/token
     @GetMapping("/validate/{token}")
     public UserDto validateToken(@PathVariable("token") String tokenValue) {
-
-        User user = userService.validateToken(tokenValue);
         UserDto userDto = new UserDto();
-        userDto.setEmail(user.getEmail());
-        userDto.setName(user.getName());
-        userDto.setRoles(user.getRoles());
 
+        try{
+            User user = userService.validateToken(tokenValue);
+            userDto.setEmail(user.getEmail());
+            userDto.setName(user.getName());
+            userDto.setRoles(user.getRoles());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
         return userDto;
     }
 }
