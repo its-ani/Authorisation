@@ -1,5 +1,6 @@
 package com.example.userservicefeb25.services;
 
+import com.example.userservicefeb25.dtos.UserDto;
 import com.example.userservicefeb25.exceptions.ExistingUserException;
 import com.example.userservicefeb25.exceptions.UserNotRegisteredException;
 import com.example.userservicefeb25.models.Role;
@@ -140,5 +141,30 @@ public class UserServiceImpl implements UserService {
     @Override
     public void logout(String tokenValue) {
 
+    }
+
+    @Override
+    public User createRoles(String name, String email, List<Role> newRoles) throws UserNotRegisteredException{
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if(optionalUser.isEmpty()) {
+            throw new UserNotRegisteredException("User with this email id does not exist");
+        }
+        User user = optionalUser.get();
+
+        List<Role> roles = userRepository.findRoleByEmail(email);
+
+        List<Role> rolesToAdd = newRoles.stream()
+                .filter(role -> !roles.contains(role))
+                .toList();
+
+        if(rolesToAdd.isEmpty()) {
+            System.out.println("Role already exists.");
+        }else{
+            roles.addAll(rolesToAdd);
+            user.setRoles(roles);
+            userRepository.save(user);
+        }
+
+        return user;
     }
 }

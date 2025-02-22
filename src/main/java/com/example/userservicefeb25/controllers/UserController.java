@@ -1,14 +1,18 @@
 package com.example.userservicefeb25.controllers;
 
 import com.example.userservicefeb25.dtos.*;
+import com.example.userservicefeb25.models.Role;
 import com.example.userservicefeb25.models.Token;
 import com.example.userservicefeb25.models.User;
 import com.example.userservicefeb25.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users") // localhost:8080/users/
@@ -71,4 +75,27 @@ public class UserController {
         }
         return userDto;
     }
+
+    @PostMapping("/createRole")
+    public RolesDto createRole(@RequestBody RolesDto userDto) {
+        RolesDto userRole = new RolesDto();
+
+        try{
+            List<Role> roleObjects = new ArrayList<>();
+            for (String roleName : userDto.getRoles()) {
+                Role role = new Role();
+                role.setValue(roleName);
+                roleObjects.add(role);
+            }
+            User responseUser = userService.createRoles(userDto.getName(), userDto.getEmail(), roleObjects);
+            userRole.setRoles(responseUser.getRoles().stream().map(Role::getValue).toList());
+            userRole.setEmail(responseUser.getEmail());
+            userRole.setName(responseUser.getName());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return userRole;
+    }
+
 }
