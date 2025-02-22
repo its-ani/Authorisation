@@ -18,5 +18,5 @@ public interface UserService {
 
     void logout(String tokenValue);
 
-    User createRoles(String name, String email, List<Role> role) throws UserNotRegisteredException;
+    User createRoles(String name, String email, List<Role> role) throws ExistingUserException, UserNotRegisteredException;
 }

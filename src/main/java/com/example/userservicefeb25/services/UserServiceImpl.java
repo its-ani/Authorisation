@@ -144,7 +144,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User createRoles(String name, String email, List<Role> newRoles) throws UserNotRegisteredException{
+    public User createRoles(String name, String email, List<Role> newRoles) throws ExistingUserException, UserNotRegisteredException{
         Optional<User> optionalUser = userRepository.findByEmail(email);
         if(optionalUser.isEmpty()) {
             throw new UserNotRegisteredException("User with this email id does not exist");
@@ -157,9 +157,16 @@ public class UserServiceImpl implements UserService {
                 .filter(role -> !roles.contains(role))
                 .toList();
 
-        if(rolesToAdd.isEmpty()) {
-            System.out.println("Role already exists.");
-        }else{
+        boolean allRolesExist = newRoles.stream()
+                .allMatch(newRole -> roles.stream()
+                        .anyMatch(existingRole -> existingRole.getValue().equals(newRole.getValue())));
+
+
+        if(allRolesExist){
+//        if(rolesToAdd.isEmpty()) {
+            throw new ExistingUserException("Role already exists.");
+        }
+        else{
             roles.addAll(rolesToAdd);
             user.setRoles(roles);
             userRepository.save(user);
