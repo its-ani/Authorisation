@@ -10,6 +10,7 @@ import com.example.userservicefeb25.repository.TokenRepository;
 import com.example.userservicefeb25.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -22,13 +23,21 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
     private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;  // Injected automatically
+
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, TokenRepository tokenRepository, RoleRepository roleRepository) {
+    public UserServiceImpl(UserRepository userRepository, TokenRepository tokenRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
+
+    public boolean validatePassword(String rawPassword, String storedPassword) {
+        return passwordEncoder.matches(rawPassword, storedPassword);
+    }
+
     @Override
     public Token login(String email, String password) throws UserNotRegisteredException{
         Optional<User> user = userRepository.findByEmail(email);
@@ -36,9 +45,14 @@ public class UserServiceImpl implements UserService {
             throw new UserNotRegisteredException("User with this email is not registered");
         }
 
-        if(!user.get().getPassword().equals(password)) {
+        boolean isMatchingPassword = passwordEncoder.matches(password, user.get().getPassword());
+        if(!isMatchingPassword) {
             throw new UserNotRegisteredException("Wrong password");
         }
+
+//        if(!user.get().getPassword().equals(password)) {
+//            throw new UserNotRegisteredException("Wrong password");
+//        }
 
         Optional<Token> optionalToken = tokenRepository.findByUser(user.get());
         Token token = null;
@@ -98,9 +112,9 @@ public class UserServiceImpl implements UserService {
         if(user.isPresent()) {
             throw new ExistingUserException("User with this email id exists. Please login from /login");
         }
-
+        String encryptedPassword = passwordEncoder.encode(password);
         newUser.setEmail(email);
-        newUser.setPassword(password);
+        newUser.setPassword(encryptedPassword);
         newUser.setName(name);
 
         User savedUser = userRepository.save(newUser);
