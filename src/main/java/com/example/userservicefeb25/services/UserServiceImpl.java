@@ -35,9 +35,10 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public boolean validatePassword(String rawPassword, String storedPassword) {
-        return passwordEncoder.matches(rawPassword, storedPassword);
-    }
+//
+//    public boolean validatePassword(String rawPassword, String storedPassword) {
+//        return passwordEncoder.matches(rawPassword, storedPassword);
+//    }
 
     @Override
     public Token login(String email, String password) throws UserNotRegisteredException{
@@ -160,7 +161,6 @@ public class UserServiceImpl implements UserService {
         boolean allRolesExist = newRoles.stream()
                 .allMatch(newRole -> roles.stream()
                         .anyMatch(existingRole -> existingRole.getValue().equals(newRole.getValue())));
-
 
         if(allRolesExist){
 //        if(rolesToAdd.isEmpty()) {
